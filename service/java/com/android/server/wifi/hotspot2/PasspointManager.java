@@ -125,6 +125,7 @@ public class PasspointManager {
     private final WifiCarrierInfoManager mWifiCarrierInfoManager;
     private final MacAddressUtil mMacAddressUtil;
     private final WifiPermissionsUtil mWifiPermissionsUtil;
+    private final boolean mIsLowMemory;
 
     /**
      * Map of package name of an app to the app ops changed listener for the app.
@@ -421,6 +422,16 @@ public class PasspointManager {
         }
         if (!mWifiPermissionsUtil.doesUidBelongToCurrentUser(uid)) {
             Log.e(TAG, "UID " + uid + " not visible to the current user");
+            return false;
+        }
+        if (config.getServiceFriendlyNames() != null && isFromSuggestion) {
+            Log.e(TAG, "Passpoint from suggestion should not have ServiceFriendlyNames");
+            return false;
+        }
+        if (getPasspointProviderWithPackage(packageName).size()
+                >= WifiManager.getMaxNumberOfNetworkSuggestionsPerApp(mIsLowMemory)) {
+            Log.e(TAG, "packageName " + packageName + " has too many passpoint with exceed the "
+                    + "limitation");
             return false;
         }
 
